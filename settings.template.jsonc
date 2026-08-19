@@ -1,5 +1,5 @@
 {
-    "version": "0.3.01",
+    "version": "0.3.03",
     "common_args": {
         "model_name_or_path": "./models/Qwen2.5-7B-Instruct",
         "adapter_name_or_path": "./model_output", //同时做为train_sft_args的output_dir
@@ -80,7 +80,7 @@
         "num_train_epochs": 2,
         "plot_loss": true,
         "fp16": true,
-        "flash_attn": "fa2",
+        "flash_attn": "fa2"
         // "deepspeed": "ds_config.json" //多卡训练
     },
     "infer_args": {
@@ -90,7 +90,7 @@
         "top_p": 0.65
     },
     "vllm_args": {
-        "gpu_memory_utilization": 0.9,
+        "gpu_memory_utilization": 0.9
         // "data_parallel_size": 2,
         // "quantization": "bitsandbytes", 
         // "load_format": "bitsandbytes"

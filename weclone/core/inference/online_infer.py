@@ -6,7 +6,7 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 from pydantic import BaseModel
 
-from weclone.core.inference.offline_infer import extract_json_from_text
+from weclone.core.inference.utils import extract_json_from_text
 from weclone.utils.log import logger
 from weclone.utils.retry import retry_openai_api
 

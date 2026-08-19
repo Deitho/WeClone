@@ -1,5 +1,8 @@
 import re
-from typing import List, Optional, cast
+from typing import TYPE_CHECKING, List, Optional, cast
+
+if TYPE_CHECKING:
+    from vllm.outputs import RequestOutput
 
 import torch
 from llamafactory.data import get_template_and_fix_tokenizer
@@ -8,17 +11,7 @@ from llamafactory.hparams import get_infer_args
 from llamafactory.model import load_tokenizer
 from openai.types.chat import ChatCompletion
 from pydantic import BaseModel
-from vllm import LLM, SamplingParams
-from vllm.lora.request import LoRARequest
-from vllm.outputs import RequestOutput
 
-try:
-    from vllm.sampling_params import GuidedDecodingParams as _GuidedDecodingParams  # type: ignore[attr-defined]
-
-    _STRUCTURED_OUTPUTS_PARAMS = None
-except ImportError:
-    _GuidedDecodingParams = None  # type: ignore[assignment,misc]
-    from vllm.sampling_params import StructuredOutputsParams as _STRUCTURED_OUTPUTS_PARAMS  # type: ignore[assignment]
 
 
 def _make_guided_decoding_params(json_schema: dict, disable_any_whitespace: bool = True):
@@ -46,7 +39,7 @@ def extract_json_from_text(text: str) -> str:
 
 
 def parse_guided_decoding_results(
-    results: List[RequestOutput] | List[ChatCompletion] | List, guided_decoding_class: type[BaseModel]
+    results: List["RequestOutput"] | List[ChatCompletion] | List, guided_decoding_class: type[BaseModel]
 ) -> tuple[List[Optional[BaseModel]], List[int]]:
     """Parse guided decoding results and return parsed results with failed indices.
 
@@ -114,11 +107,21 @@ def vllm_infer(
     image_max_pixels: int = 768 * 768,
     image_min_pixels: int = 32 * 32,
 ) -> tuple[List[RequestOutput] | List[Optional[BaseModel]], List[int]]:
-    r"""Perform batch generation using vLLM engine, which supports tensor parallelism.
+    r"""Perform batch generation using vLLM engine, which supports tensor parallelism."""
 
-    Returns:
-        tuple: (results, failed_indices) where failed_indices contains indices of failed JSON parsing
-    """
+    # vLLM is only required when this function is actually used.
+    from vllm import LLM, SamplingParams
+    from vllm.lora.request import LoRARequest
+    from vllm.outputs import RequestOutput
+
+    try:
+        from vllm.sampling_params import GuidedDecodingParams as _GuidedDecodingParams
+
+        _STRUCTURED_OUTPUTS_PARAMS = None
+    except ImportError:
+        _GuidedDecodingParams = None
+        from vllm.sampling_params import StructuredOutputsParams as _STRUCTURED_OUTPUTS_PARAMS
+
     if pipeline_parallel_size > get_device_count():
         raise ValueError("Pipeline parallel size should be smaller than the number of gpus.")
 
